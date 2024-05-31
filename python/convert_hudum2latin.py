@@ -3,10 +3,12 @@
 #A converter between Cyrillic and hudum can be found here: http://trans.mglip.com/EnglishC2T.aspx
 
 #Unicode has the same code for both the back vowel g sound and the front vowel g sound, so this python program only uses the letter 'g' to represent both sounds; likewise for q. 
-
+#The character 'U+183A' (like a backwards 'C' with two or three prongs sticking out of its upper tip) was borrowed directly from the old Uyghur alphabet, and originally served as the front vowel K in the medieval Mongol alphabet, but then in later times it came to be only used for foreign loanwords.
+#Outside of foreign loanwords, the front vowel K came to be written with only one prong on its upper tip; this character has the same unicode as the back vowel q.
+ 
 # Please save the hudum text in a file called hudum_file.txt and store it next to this python file within the same folder.
 
-f = open('hudum_file.txt', 'r')
+f = open('hudum_file.txt', 'r', encoding="utf8")
 text = f.read()
 f.close()
 
@@ -16,9 +18,25 @@ dict = {'\u182D': 'g', '\u182C': 'q', '\u1832': 't', '\u1833': 'd', '\u1830': 's
         }
 hudum_chars = dict.keys()
 
-punctuation_dict = {'\u1801': '....', '\u1802': ',', '\u1803': ';', '\u1804': ':', '\u202F': '-'}
+punctuation_dict = {'\u1801': '....', '\u1802': ',', '\u1803': ';', '\u1804': ':', '\u202F': '-', '\u180B': '', '\u180C': '', '\u180D': '', '\u180E': ''}
 punctuations = punctuation_dict.keys()
 
+#remove trailing whitespace in each line
+lines = text.split('\n')
+text = ""
+num_lines = len(lines)
+for i in range(0, num_lines):
+    line = lines[i]
+    line_len = len(line)
+    if line_len > 0:
+        line.strip(' ')
+        line.strip('\t')
+        line_len = len(line)
+        if i < num_lines - 1 or line_len > 0:
+            text = text + line + '\n'
+
+#split text into array of words
+#each newline character is treated as a separate word
 text = text.replace('\n', ' \n ')
 words = text.split(' ')
 
@@ -26,6 +44,8 @@ print(words)
 
 output = ""
 for word in words:
+    word_len = len(word)
+    
     if '\u180B' in word: #if a recent foreign loanword needing special letter forms
         output = output + '*'
     for char in word:
@@ -36,9 +56,9 @@ for word in words:
         else:
             output = output + char
     
-    if not word.isspace():
+    if word_len > 0 and not word.isspace():
         output = output + " "
 
-output_file = open('romanized_file.txt', 'w')
+output_file = open('romanized_file.txt', 'w', encoding="utf8")
 output_file.write(output)
 output_file.close()
