@@ -14,11 +14,13 @@ f.close()
 
 dict = {'\u182D': 'g', '\u182C': 'q', '\u1832': 't', '\u1833': 'd', '\u1830': 's', '\u1831': 'š', '\u1834': 'č', '\u1835': 'ǰ', '\u182F': 'l', '\u1837': 'r', '\u1828': 'n', '\u182E': 'm', '\u1829': 'ŋ', '\u182A': 'b', '\u1820': 'a', '\u1823': 'o', '\u1824': 'u', '\u1821': 'e', '\u1825': 'ö', '\u1826': 'ü', '\u1822': 'i', '\u1836': 'y',
         #Foreign Sounds
-        '\u1827': 'ē', '\u182B': 'p', '\u1839': 'f', '\u183A': 'k', '\u183B': 'ǩ', '\u183C': '\u02A6', '\u183D': 'z', '\u183E': 'h', '\u183F': 'ẑ', '\u1841': 'ĵ', '\u1842': 'ĉ'
+        '\u1827': 'ē', '\u182B': 'p', '\u1839': 'f', '\u183A': 'k', '\u183B': 'ǩ', '\u183C': '\u02A6', '\u183D': 'z', '\u183E': 'h', '\u183F': 'ẑ', '\u1841': 'ĵ', '\u1842': 'ĉ',
+        #FVS and MVS characters (non-printable)
+        '\u180B': '', '\u180C': '', '\u180D': '', '\u180E': '', 'u180F': ''
         }
-hudum_chars = dict.keys()
+hudum_letters = dict.keys()
 
-punctuation_dict = {'\u1801': '....', '\u1802': ',', '\u1803': ';', '\u1804': ':', '\u202F': '-', '\u180B': '', '\u180C': '', '\u180D': '', '\u180E': ''}
+punctuation_dict = {'\u1801': '....', '\u1802': ',', '\u1803': ';', '\u1804': ':', '\u202F': '-'}
 punctuations = punctuation_dict.keys()
 
 #remove trailing whitespace in each line
@@ -29,16 +31,26 @@ for i in range(0, num_lines):
     line = lines[i]
     line_len = len(line)
     if line_len > 0:
-        line.strip(' ')
-        line.strip('\t')
+        line.rstrip()
         line_len = len(line)
         if i < num_lines - 1 or line_len > 0:
             text = text + line + '\n'
 
 #split text into array of words
 #each newline character is treated as a separate word
-text = text.replace('\n', ' \n ')
-words = text.split(' ')
+new_text = ""
+text_len = len(text)
+for i in range(0, text_len):
+    char = text[i]
+    if not char in hudum_letters and not char == '\u0000':
+        new_text_len = len(new_text)
+        if new_text_len > 0 and not new_text[new_text_len - 1] == '\u0000':
+            new_text = new_text + '\u0000'
+        new_text = new_text + char + '\u0000'
+    else:
+        new_text = new_text + char
+       
+words = new_text.split('\u0000')
 
 print(words)
 
@@ -49,15 +61,12 @@ for word in words:
     if '\u180B' in word: #if a recent foreign loanword needing special letter forms
         output = output + '*'
     for char in word:
-        if char in hudum_chars:
+        if char in hudum_letters:
             output = output + dict[char]
         elif char in punctuations:
             output = output + punctuation_dict[char]
         else:
             output = output + char
-    
-    if word_len > 0 and not word.isspace():
-        output = output + " "
 
 output_file = open('romanized_file.txt', 'w', encoding="utf8")
 output_file.write(output)
